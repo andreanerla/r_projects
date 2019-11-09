@@ -1,0 +1,209 @@
+library(tidyverse)
+library(ggraph) 
+library(quanteda)
+library(tidytext)
+library(ggplot2)
+library(igraph)
+
+strategy_games <- read_csv("../input/17k-apple-app-store-strategy-games/appstore_games.csv")
+
+strategy_games <- as_tibble(strategy_games)
+
+#titles
+
+word_occurrences <- strategy_games %>%
+unnest_tokens(word, Name, to_lower = TRUE)%>%
+count(word, sort = TRUE)%>%
+ungroup()
+
+data(stop_words)
+
+word_occurrences <- word_occurrences %>%
+anti_join(stop_words)
+
+word_occurrences[word_occurrences =='u0627'] <- 'ا'
+word_occurrences[word_occurrences =='u0644'] <- 'ل'
+word_occurrences[word_occurrences =='u2026'] <- '…'
+word_occurrences[word_occurrences =='u2019t'] <- "'t"
+word_occurrences[word_occurrences =='u2014'] <- '—'
+word_occurrences[word_occurrences =='u25a0'] <- '■'
+word_occurrences[word_occurrences =='u2605'] <- '★'
+word_occurrences[word_occurrences =='u2022'] <- '•'
+word_occurrences[word_occurrences =='u2022'] <- '•'
+word_occurrences[word_occurrences =='xa0'] <- '~'
+word_occurrences[word_occurrences =='u0639'] <- 'ع'
+word_occurrences[word_occurrences =='u2015'] <- '―'
+
+plot_word_occurrences <- word_occurrences[1:25,]
+
+plot_word_occurrences %>%
+ggplot(aes(reorder(word, n), n))+
+geom_bar(stat = 'identity', fill = 'cyan4')+
+coord_flip()+
+theme_minimal(base_size = 15)+
+labs(x = "Words", y = "Occurrences")
+
+word_bigram <- strategy_games %>%
+unnest_tokens(words, Name, token = "ngrams", n = 2, to_lower = TRUE)%>%
+count(words, sort = TRUE)%>%
+ungroup()
+
+word_bigram = word_bigram[-1,]
+
+bigrams_t_separated <- word_bigram %>%
+separate(words, c("word1", "word2"), sep = " ")%>%
+filter(!word1 %in% stop_words$word) %>%
+filter(!word2 %in% stop_words$word)
+
+bigrams_t_filtered <- bigrams_t_separated %>%
+unite(words, c("word1", "word2"), sep = " ")
+
+plot_bigram_occurrences <- bigrams_t_filtered[1:25,]
+
+plot_bigram_occurrences %>%
+ggplot(aes(reorder(words, n), n))+
+geom_bar(stat = 'identity', fill = 'royalblue')+
+coord_flip()+
+theme_minimal(base_size = 15)+
+labs(x = "Words", y = "Occurrences")
+
+word_trigram <- strategy_games %>%
+unnest_tokens(words, Name, token = "ngrams", n = 3, to_lower = TRUE)%>%
+count(words, sort = TRUE)%>%
+ungroup()
+
+trigrams_t_separated <- word_trigram %>%
+separate(words, c("word1", "word2", "word3"), sep = " ")%>%
+filter(!word1 %in% stop_words$word) %>%
+filter(!word2 %in% stop_words$word)
+
+trigrams_t_filtered <- trigrams_t_separated %>%
+unite(words, c("word1", "word2", "word3"), sep = " ")
+
+trigrams_t_filtered = trigrams_t_filtered[-1,]
+
+plot_trigram_occurrences <- trigrams_t_filtered[1:25,]
+
+plot_trigram_occurrences %>%
+ggplot(aes(reorder(words, n), n))+
+geom_bar(stat = 'identity', fill = 'darkred')+
+coord_flip()+
+theme_minimal(base_size = 15)+
+labs(x = "Words", y = "Occurrences")
+
+bigram_t_network <- bigrams_t_separated[1:50,]
+
+bigram_t_network <- bigram_t_network %>%
+graph_from_data_frame()
+
+set.seed(2016)
+
+a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
+
+ggraph(bigram_t_network, layout = "fr") +
+geom_edge_link(aes(edge_alpha = n, edge_width = n), edge_colour = "royalblue") +
+geom_node_point(size = 5) +
+geom_node_text(aes(label = name), repel = TRUE,
+point.padding = unit(0.2, "lines")) +
+theme_void()
+
+#descriptions
+
+descript_occurrences <- strategy_games %>%
+unnest_tokens(word, Description, to_lower = TRUE)%>%
+count(word, sort = TRUE)%>%
+ungroup()
+
+descript_occurrences <- descript_occurrences %>%
+anti_join(stop_words)
+
+plot_descript_occurrences <- descript_occurrences[1:25,]
+
+plot_descript_occurrences[plot_descript_occurrences =='u2022'] <- '•'
+
+plot_descript_occurrences %>%
+ggplot(aes(reorder(word, n), n))+
+geom_bar(stat = 'identity', fill = 'cyan4')+
+coord_flip()+
+theme_minimal(base_size = 15)+
+labs(x = "Words", y = "Occurrences")
+
+descript_bigram <- strategy_games %>%
+unnest_tokens(words, Description, token = "ngrams", n = 2, to_lower = TRUE)%>%
+count(words, sort = TRUE)%>%
+ungroup()
+
+bigrams_d_separated <- descript_bigram %>%
+separate(words, c("word1", "word2"), sep = " ")%>%
+filter(!word1 %in% stop_words$word) %>%
+filter(!word2 %in% stop_words$word)
+
+bigrams_d_separated[bigrams_d_separated =='u0627'] <- 'ا'
+bigrams_d_separated[bigrams_d_separated =='u0644'] <- 'ل'
+bigrams_d_separated[bigrams_d_separated =='u2026'] <- '…'
+bigrams_d_separated[bigrams_d_separated =='u2019t'] <- "'t"
+bigrams_d_separated[bigrams_d_separated =='u2014'] <- '—'
+bigrams_d_separated[bigrams_d_separated =='u25a0'] <- '■'
+bigrams_d_separated[bigrams_d_separated =='u2605'] <- '★'
+bigrams_d_separated[bigrams_d_separated =='u2022'] <- '•'
+bigrams_d_separated[bigrams_d_separated =='xa0'] <- '~'
+bigrams_d_separated[bigrams_d_separated =='u0639'] <- 'ع'
+bigrams_d_separated[bigrams_d_separated =='u2015'] <- '―'
+
+bigrams_d_filtered <- bigrams_d_separated %>%
+unite(words, c("word1", "word2"), sep = " ")
+
+plot_descript_bigram <- bigrams_d_filtered[1:25,]
+
+plot_descript_bigram %>%
+ggplot(aes(reorder(words, n), n))+
+geom_bar(stat = 'identity', fill = 'royalblue')+
+coord_flip()+
+theme_minimal(base_size = 15)+
+labs(x = "Words", y = "Occurrences")
+
+descript_trigram <- strategy_games %>%
+unnest_tokens(words, Description, token = "ngrams", n = 3, to_lower = TRUE)%>%
+count(words, sort = TRUE)%>%
+ungroup()
+trigrams_d_separated <- descript_trigram %>%
+separate(words, c("word1", "word2", "word3"), sep = " ")%>%
+filter(!word1 %in% stop_words$word) %>%
+filter(!word2 %in% stop_words$word)
+trigrams_d_separated[trigrams_d_separated =='u0627'] <- 'ا'
+trigrams_d_separated[trigrams_d_separated =='u0644'] <- 'ل'
+trigrams_d_separated[trigrams_d_separated =='u2026'] <- '…'
+trigrams_d_separated[trigrams_d_separated =='u2019t'] <- "'t"
+trigrams_d_separated[trigrams_d_separated =='u2014'] <- '—'
+trigrams_d_separated[trigrams_d_separated =='u25a0'] <- '■'
+trigrams_d_separated[trigrams_d_separated =='u2605'] <- '★'
+trigrams_d_separated[trigrams_d_separated =='u2022'] <- '•'
+trigrams_d_separated[trigrams_d_separated =='u2022'] <- '•'
+trigrams_d_separated[trigrams_d_separated =='xa0'] <- '~'
+trigrams_d_separated[trigrams_d_separated =='u0639'] <- 'ع'
+trigrams_d_separated[trigrams_d_separated =='u2015'] <- '―'
+trigrams_d_separated[trigrams_d_separated =='u0645'] <- 'م'
+trigrams_d_separated[trigrams_d_separated =='u2500'] <- '▙'
+trigrams_d_filtered <- trigrams_d_separated %>%
+unite(words, c("word1", "word2", "word3"), sep = " ")
+plot_descript_trigram <- trigrams_d_filtered[1:25,]
+plot_descript_trigram %>%
+ggplot(aes(reorder(words, n), n))+
+geom_bar(stat = 'identity', fill = 'darkred')+
+coord_flip()+
+theme_minimal(base_size = 18)+
+labs(x = "Words", y = "Occurrences")
+bigrams_d_network <- bigrams_d_separated[1:50,]
+bigrams_d_network %>%
+graph_from_data_frame()
+
+set.seed(1997)
+
+a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
+
+ggraph(bigrams_d_network, layout = "fr") +
+geom_edge_link(aes(edge_alpha = n, edge_width = n), edge_colour = "royalblue") +
+geom_node_point(size = 5) +
+geom_node_text(aes(label = name), repel = TRUE,
+point.padding = unit(0.2, "lines")) +
+theme_void()
