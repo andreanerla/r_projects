@@ -1,6 +1,6 @@
 # r_projects
 
-To reproduce the project, the datasets have to be stored in the download folder. 
+To reproduce the projects, the datasets have to be stored in the download folder. 
 
 To download the dataset for app_store_strategy_games_text_mining go to https://www.kaggle.com/tristan581/17k-apple-app-store-strategy-games
 
