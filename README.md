@@ -6,4 +6,4 @@ To download the dataset for app_store_strategy_games_text_mining go to https://w
 
 To download the dataset for most_used_words_yt_titles go to https://www.kaggle.com/datasnaek/youtube-new
 
-If a project doesn't work, please let me know and open it via kaggle.com/andreanerla/kernels 
+If a project doesn't work, please let me know and open it via https://www.kaggle.com/andreanerla/kernels 
