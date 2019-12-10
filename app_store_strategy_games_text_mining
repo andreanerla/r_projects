@@ -5,7 +5,8 @@ library(tidytext)
 library(ggplot2)
 library(igraph)
 
-strategy_games <- read_csv("../input/17k-apple-app-store-strategy-games/appstore_games.csv")
+# Run this line and navigate to wherever you've downloaded the file.
+strategy_games <- read.csv(choose.file())
 
 strategy_games <- as_tibble(strategy_games)
 
